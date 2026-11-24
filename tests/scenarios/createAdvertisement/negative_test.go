@@ -5,10 +5,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/stretchr/testify/require"
-
 	"api-tests-template/internal/constants/messages"
 	"api-tests-template/internal/constants/testdata"
+	"api-tests-template/internal/helpers/response"
 	"api-tests-template/internal/managers/advertisements"
 	advModels "api-tests-template/internal/managers/advertisements/models"
 
@@ -19,9 +18,8 @@ import (
 // и свой текст ошибки для каждого случая
 func (s *TestSuite) TestCreateAdvertisementInvalidParams() {
 	testCases := []struct {
-		name   string
-		modify func(request *advModels.CreateAdvertisementRequest)
-		// message ожидаемый текст ошибки; если пустой, проверяются только status code, error и непустой message
+		name    string
+		modify  func(request *advModels.CreateAdvertisementRequest)
 		message string
 	}{
 		{
@@ -47,12 +45,14 @@ func (s *TestSuite) TestCreateAdvertisementInvalidParams() {
 			message: messages.MessagePriceOutOfRange,
 		},
 		{
-			name:   "Цена не число",
-			modify: func(request *advModels.CreateAdvertisementRequest) { request.Price = testdata.NotNumber },
+			name:    "Цена не число",
+			modify:  func(request *advModels.CreateAdvertisementRequest) { request.Price = testdata.NotNumber },
+			message: fmt.Sprintf(messages.MessagePriceNotNumberFmt, testdata.NotNumber),
 		},
 		{
-			name:   "Количество не число",
-			modify: func(request *advModels.CreateAdvertisementRequest) { request.Quantity = testdata.NotNumber },
+			name:    "Количество не число",
+			modify:  func(request *advModels.CreateAdvertisementRequest) { request.Quantity = testdata.NotNumber },
+			message: messages.MessageQuantityNotNumber,
 		},
 		{
 			name:    "Нет фотографий",
@@ -73,6 +73,7 @@ func (s *TestSuite) TestCreateAdvertisementInvalidParams() {
 					advertisements.LoadPhoto(s.T(), testdata.NotImageFileName, testdata.NotImageContentType),
 				}
 			},
+			message: messages.MessageFileTypeNotAllowed,
 		},
 	}
 
@@ -84,10 +85,7 @@ func (s *TestSuite) TestCreateAdvertisementInvalidParams() {
 			errorResponse := advertisements.CreateAdvertisementExpectError(s.T(), s.loginData.Token, request, http.StatusBadRequest)
 			base.ResultError(http.StatusBadRequest, errorResponse)
 
-			require.Equal(s.T(), messages.ErrorInvalidRequest, errorResponse.Error, "Некорректное значение error параметра")
-			if testCase.message != "" {
-				require.Equal(s.T(), testCase.message, errorResponse.Message, "Некорректное значение message параметра")
-			}
+			response.RequireError(s.T(), errorResponse, messages.ErrorInvalidRequest, testCase.message)
 		})
 	}
 }

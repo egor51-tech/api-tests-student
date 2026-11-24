@@ -21,8 +21,11 @@ const (
 	MessageTitleTooLongFmt     = "title must not exceed %d characters provided %d"
 	MessageDescriptionRequired = "description is required"
 	MessagePriceOutOfRange     = "price must be between 0 and 1000000 inclusive"
+	MessagePriceNotNumberFmt   = "cannot convert string value %s to float"
+	MessageQuantityNotNumber   = "cannot convert string value to int"
 	MessagePhotoRequired       = "at least 1 photo is required"
 	MessagePhotosOverLimit     = "maximum 3 photos allowed"
+	MessageFileTypeNotAllowed  = `photo 1: file type not allowed: extension ".txt"`
 )
 
 // Тексты поля message в ответах избранного
